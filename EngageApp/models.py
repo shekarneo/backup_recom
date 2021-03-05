@@ -31,6 +31,7 @@ class EventDetails(models.Model):
     req_visitors = models.BooleanField(default=True)
     req_virtual = models.BooleanField(default=True)
     about_bg = models.CharField(max_length=100, default=" ")
+    update=models.CharField(max_length=1000, null=True)
 
 
 class EventAssociation(models.Model):
@@ -197,8 +198,8 @@ class GetInTouch(models.Model):
     name = models.CharField(max_length=200)
     mail = models.CharField(max_length=200)
     phone = models.CharField(max_length=200)
-    company = models.CharField(max_length=200)
-    designation = models.CharField(max_length=200)
+    company = models.CharField(max_length=200,null=True)
+    message = models.CharField(max_length=2000,null=True)
 
 
 class AboutUs(models.Model):
@@ -245,8 +246,8 @@ class EventConference_1(models.Model):
     vc_city = models.CharField(max_length=200, default='')
     vc_state = models.CharField(max_length=200, default='')
     purpose = models.CharField(max_length=2000, default='')
-    event_charges = models.FloatField()
-    tax = models.FloatField()
+    event_charges = models.FloatField(null=True)
+    tax = models.FloatField(null=True)
     total_amount = models.FloatField()
     gst_no = models.CharField(max_length=200, default='')
     address = models.CharField(max_length=2000, default='')
@@ -281,8 +282,8 @@ class VirtualRegister(models.Model):
     vc_city = models.CharField(max_length=200, default='')
     vc_state = models.CharField(max_length=200, default='')
     purpose = models.CharField(max_length=2000, default='')
-    event_charges = models.FloatField()
-    tax = models.FloatField()
+    event_charges = models.FloatField(null=True)
+    tax = models.FloatField(null=True)
     total_amount = models.FloatField()
     gst_no = models.CharField(max_length=200, default='')
     address = models.CharField(max_length=2000, default='')
@@ -306,7 +307,7 @@ class Coupons(models.Model):
     id = models.AutoField(primary_key=True)
     coupon_code = models.CharField(max_length=200)
     discount_amount = models.FloatField()
-    status = models.CharField(max_length=100)
+    status = models.BooleanField(default=True)
     created_by_empid = models.IntegerField()
     created_datetime = models.DateTimeField()
     modified_datetime = models.DateTimeField()

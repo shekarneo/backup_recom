@@ -136,8 +136,10 @@ class EventVisitorSerializer(serializers.ModelSerializer):
 class aboutUsSerializer(serializers.ModelSerializer):
     class Meta:
         model = AboutUs
-        fields = '__all__'
-
+        fields = ('address',
+                  'email',
+                  'phone',
+                  )
 
 class EventSerializerReq(serializers.ModelSerializer):
     class Meta:
@@ -166,3 +168,13 @@ class EventAssociateSerializer(serializers.ModelSerializer):
                   'vc_img_url',
                   'vc_link',
                   )
+
+class EventSerializerUpcoming(serializers.ModelSerializer):
+    class Meta:
+        model=EventDetails
+        fields=(
+                'id',
+                'vc_event_title',
+                'vc_backgroundImage',
+                'vc_description'
+            )

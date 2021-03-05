@@ -48,7 +48,8 @@ urlpatterns = [
     url(r'^media_partners/$', views.MediaPartner.as_view()),
     url(r'^media/$', views.MediaPartnerView.as_view()),
     url(r'^associations/$', views.AssociateView.as_view()),
-    url(r'^coupon/$', views.CouponValidate.as_view())
+    url(r'^coupon/$', views.CouponValidate.as_view()),
+    url(r'^get_in_touch/$', views.GetInRegister.as_view()),
 ]
 
 # if settings.DEBUG:

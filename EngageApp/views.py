@@ -11,12 +11,12 @@ from django.db import IntegrityError
 from .models import (EventDetails, EventAssociation, EventDelegates, EventDates,
                      EventExhibitor, EventLog, EventPartners, EventPartnerships,
                      EventSalesPersons, EventSpeakers, EventSupportedBy, EventTestimonials, EventVisitors, AboutUs,
-                     EventExhibitor_1,
+                     EventExhibitor_1,GetInTouch,
                      EventConference_1, EventVisitor_1, VirtualRegister, EventMediaPartner, ContactDeatils, Coupons)
 from .serializers import (EventSerializer, AssociationSerializer, DelegateSerializer, EventDateSerializer,
                           ExhibitorSerializer, EventLogSerializer, EventPartnersSerializer, EventPartnershipSerializer,
                           EventSalesPersonSerializer, EventSpeakersSerializer, EventSupportedSerializer,
-                          EventTestimonialsSerializer,
+                          EventTestimonialsSerializer,EventSerializerUpcoming,
                           EventVisitorSerializer, aboutUsSerializer, EventSerializerReq, EventMediaSerializer,
                           EventAssociateSerializer)
 from django.views.decorators.csrf import csrf_exempt
@@ -26,68 +26,36 @@ from rest_framework import serializers
 
 # Create your views here.
 @csrf_exempt
+@csrf_exempt
 def filter_date_event1(request):
-    global list1
     if request.method == "POST":
-        list1 = []
-        events = EventDetails.objects.filter(dt_eventCreatedEmpDatetime__gte=datetime.datetime.now()).values()[0:3]
-        event_serializer = EventSerializer(events, many=True)
-        for dict1 in event_serializer.data:
-            dict2 = {}
-            dict2['id'] = dict1['id']
-            dict2['vc_event_title'] = dict1['vc_event_title']
-            dict2['vc_backgroundImage'] = dict1['vc_backgroundImage']
-            dict2['vc_description'] = dict1['vc_description']
-            list1.append(dict2)
-    return JsonResponse({'upcoming_events': list1}, safe=False)
+        events = EventDetails.objects.filter(dt_eventCreatedEmpDatetime__gte=datetime.datetime.now()).values('id','vc_event_title','vc_backgroundImage','vc_description')[0:3]
+        upcoming_serializer=EventSerializerUpcoming(events,many=True)
+        return JsonResponse({'upcoming_events': upcoming_serializer.data}, safe=False)
 
 
 @csrf_exempt
 def filter_date_event2(request):
     if request.method == "POST":
-        list1 = []
-        events = EventDetails.objects.filter(dt_eventCreatedEmpDatetime__gte=datetime.datetime.now()).values()
-        event_serializer = EventSerializer(events, many=True)
-        for dict1 in event_serializer.data:
-            dict2 = {}
-            dict2['id'] = dict1['id']
-            dict2['vc_event_title'] = dict1['vc_event_title']
-            dict2['vc_backgroundImage'] = dict1['vc_backgroundImage']
-            dict2['vc_description'] = dict1['vc_description']
-            list1.append(dict2)
-    return JsonResponse({'upcoming_events': list1}, safe=False)
+        events = EventDetails.objects.filter(dt_eventCreatedEmpDatetime__gte=datetime.datetime.now()).values('id','vc_event_title','vc_backgroundImage','vc_description')
+        upcoming_serializer=EventSerializerUpcoming(events,many=True)
+        return JsonResponse({'upcoming_events_all': upcoming_serializer.data}, safe=False)
 
 
 @csrf_exempt
 def filter_date_event3(request):
     if request.method == "POST":
-        list1 = []
-        events = EventDetails.objects.filter(dt_eventCreatedEmpDatetime__gte=datetime.datetime.now()).values()[0:3]
-        event_serializer = EventSerializer(events, many=True)
-        for dict1 in event_serializer.data:
-            dict2 = {}
-            dict2['id'] = dict1['id']
-            dict2['vc_event_title'] = dict1['vc_event_title']
-            dict2['vc_backgroundImage'] = dict1['vc_backgroundImage']
-            dict2['vc_description'] = dict1['vc_description']
-            list1.append(dict2)
-    return JsonResponse({'past_events': list1}, safe=False)
+        events = EventDetails.objects.filter(dt_eventCreatedEmpDatetime__lte=datetime.datetime.now()).values('id','vc_event_title','vc_backgroundImage','vc_description')[0:3]
+        event_serializer = EventSerializerUpcoming(events, many=True)
+        return JsonResponse({'past_events': event_serializer.data}, safe=False)
 
 
 @csrf_exempt
 def filter_date_event4(request):
     if request.method == "POST":
-        list1 = []
-        events = EventDetails.objects.filter(dt_eventCreatedEmpDatetime__gte=datetime.datetime.now()).values()
-        event_serializer = EventSerializer(events, many=True)
-        for dict1 in event_serializer.data:
-            dict2 = {}
-            dict2['id'] = dict1['id']
-            dict2['vc_event_title'] = dict1['vc_event_title']
-            dict2['vc_backgroundImage'] = dict1['vc_backgroundImage']
-            dict2['vc_description'] = dict1['vc_description']
-            list1.append(dict2)
-    return JsonResponse({'past_events': list1}, safe=False)
+        events = EventDetails.objects.filter(dt_eventCreatedEmpDatetime__lte=datetime.datetime.now()).values('id','vc_event_title','vc_backgroundImage','vc_description')
+        event_serializer = EventSerializerUpcoming(events, many=True)
+        return JsonResponse({'past_events_all': event_serializer.data}, safe=False)
 
 
 class Eventslist(APIView):
@@ -398,7 +366,7 @@ class PartnershipRegister(APIView):
                 return JsonResponse("invalid state", safe=False)
             elif not rule1_chr.search(purpose):
                 return JsonResponse("invalid purpose", safe=False)
-            elif not rule1_chr.search(register_for):
+            elif not rule1_chr.search(str(register_for)):
                 return JsonResponse("invalid register for", safe=False)
             contact_data.save()
             return JsonResponse("successfully registered!!", safe=False)
@@ -423,6 +391,42 @@ class ExhibitorRegister(APIView):
                 purpose=register_data['purpose'],
                 register_for=register_data['register_for'],
             )
+            
+            
+            rule1_chr = re.compile(r'^[A-Za-z0-9]+(?:[ _-][A-Za-z0-9]+)*$')
+            pattern_comp = re.compile(r'^[A-Za-z0-9 _]*[A-Za-z0-9][A-Za-z0-9 _]*$')
+            rule3_ph = re.compile(r'^[0-9]{10}$')
+            rule2_email = re.compile(r'^[a-z0-9]+[\._]?[a-z0-9]+[@]\w+[.]\w{2,3}$')
+            ch_firstname = register_data['ch_firstname']
+            ch_lastname = register_data['ch_lastname']
+            vc_designation = register_data['vc_designation']
+            vc_company = register_data['vc_company']
+            vc_phonenumber = register_data['vc_phonenumber']
+            vc_email = register_data['vc_email']
+            vc_city = register_data['vc_city']
+            vc_state = register_data['vc_state']
+            purpose = register_data['purpose']
+            register_for = register_data['register_for']
+            if not rule1_chr.search(ch_firstname):
+                return JsonResponse("invalid first name", safe=False)
+            elif not rule1_chr.search(ch_lastname):
+                return JsonResponse("invalid last name", safe=False)
+            elif not rule1_chr.search(vc_designation):
+                return JsonResponse("invalid last name", safe=False)
+            elif not pattern_comp.search(vc_company):
+                return JsonResponse("invalid  company", safe=False)
+            elif not rule3_ph.search(vc_phonenumber):
+                return JsonResponse("invalid  phone", safe=False)
+            elif not rule2_email.search(vc_email):
+                return JsonResponse("invalid  email", safe=False)
+            elif not rule1_chr.search(vc_city):
+                return JsonResponse("invalid city", safe=False)
+            elif not rule1_chr.search(vc_state):
+                return JsonResponse("invalid state", safe=False)
+            elif not rule1_chr.search(purpose):
+                return JsonResponse("invalid purpose", safe=False)
+            elif not rule1_chr.search(str(register_for)):
+                return JsonResponse("invalid register for", safe=False)
 
             contact_data.save()
             return JsonResponse("successfully registered!!", safe=False)
@@ -436,11 +440,11 @@ class ConferenceRegister(APIView):
         try:
             register_data = JSONParser().parse(request)
             print(register_data)
-            rule1_chr = re.compile('[@_!#$%^&*()<>?/\|}{~:0-9]')
+            rule1_chr = re.compile(r'^[A-Za-z0-9]+(?:[ _-][A-Za-z0-9]+)*$')
             pattern_comp = re.compile(r'^[A-Za-z0-9 _]*[A-Za-z0-9][A-Za-z0-9 _]*$')
             rule3_ph = re.compile(r'^[0-9]{10}$')
             rule2_email = re.compile(r'^[a-z0-9]+[\._]?[a-z0-9]+[@]\w+[.]\w{2,3}$')
-            rule3_amount = re.compile(r'^[1-9]\d*(\.\d+)?$')
+            rule3_amount = re.compile("[0-9]*[.,]?[0-9]*")
             pattern_gstpan = re.compile(r'^[A-Za-z0-9_-]*$')
             ch_firstname = register_data['ch_firstname']
             ch_lastname = register_data['ch_lastname']
@@ -455,13 +459,12 @@ class ConferenceRegister(APIView):
             total_amount = register_data['total_amount']
             gst_no = register_data['gst_no']
             address = register_data['address']
-            print(ch_lastname)
-            if rule1_chr.search(ch_firstname):
-                return JsonResponse("ch_firstname: invalid first name", safe=False)
-            elif rule1_chr.search(ch_lastname):
-                return JsonResponse("ch_lastname: invalid last name", safe=False)
-            elif rule1_chr.search(vc_designation):
-                return JsonResponse("invalid designation name", safe=False)
+            if not rule1_chr.search(ch_firstname):
+                return JsonResponse("invalid first name", safe=False)
+            elif not rule1_chr.search(ch_lastname):
+                return JsonResponse("invalid last name", safe=False)
+            elif not rule1_chr.search(vc_designation):
+                return JsonResponse("invalid last name", safe=False)
             elif not pattern_comp.search(vc_company):
                 return JsonResponse("invalid  company", safe=False)
             elif not rule3_ph.search(vc_phonenumber):
@@ -474,16 +477,16 @@ class ConferenceRegister(APIView):
                 return JsonResponse("invalid state", safe=False)
             elif not rule1_chr.search(purpose):
                 return JsonResponse("invalid purpose", safe=False)
-            elif not rule1_chr.search(register_for):
+            elif not rule1_chr.search(str(register_for)):
                 return JsonResponse("invalid register for", safe=False)
-            elif not rule3_amount.search(total_amount):
+            elif not rule3_amount.search(str(total_amount)):
                 return JsonResponse("invalid amount", safe=False)
-            elif not pattern_gstpan.search(gst_no):
-                return JsonResponse("invalid gst or pan", safe=False)
             elif not pattern_gstpan.search(gst_no):
                 return JsonResponse("invalid gst or pan", safe=False)
             elif not pattern_comp.search(address):
                 return JsonResponse("invalid address", safe=False)
+
+                print("hello")
 
             else:
                 contact_data = EventConference_1.objects.create(
@@ -524,6 +527,8 @@ class VisitorRegister(APIView):
                 purpose=register_data['purpose'],
                 register_for=register_data['register_for'],
             )
+            
+            
 
             contact_data.save()
             return JsonResponse("successfully registered!!", safe=False)
@@ -551,6 +556,54 @@ class VirtualRegisterView(APIView):
                 address=register_data['address'],
                 register_for=register_data['register_for'],
             )
+            
+            
+            rule1_chr = re.compile(r'^[A-Za-z0-9]+(?:[ _-][A-Za-z0-9]+)*$')
+            pattern_comp = re.compile(r'^[A-Za-z0-9 _]*[A-Za-z0-9][A-Za-z0-9 _]*$')
+            rule3_ph = re.compile(r'^[0-9]{10}$')
+            rule2_email = re.compile(r'^[a-z0-9]+[\._]?[a-z0-9]+[@]\w+[.]\w{2,3}$')
+            rule3_amount = re.compile("[0-9]*[.,]?[0-9]*")
+            pattern_gstpan = re.compile(r'^[A-Za-z0-9_-]*$')
+            ch_firstname = register_data['ch_firstname']
+            ch_lastname = register_data['ch_lastname']
+            vc_designation = register_data['vc_designation']
+            vc_company = register_data['vc_company']
+            vc_phonenumber = register_data['vc_phonenumber']
+            vc_email = register_data['vc_email']
+            vc_city = register_data['vc_city']
+            vc_state = register_data['vc_state']
+            purpose = register_data['purpose']
+            register_for = register_data['register_for']
+            total_amount = register_data['total_amount']
+            gst_no = register_data['gst_no']
+            address = register_data['address']
+            if not rule1_chr.search(ch_firstname):
+                return JsonResponse("invalid first name", safe=False)
+            elif not rule1_chr.search(ch_lastname):
+                return JsonResponse("invalid last name", safe=False)
+            elif not rule1_chr.search(vc_designation):
+                return JsonResponse("invalid last name", safe=False)
+            elif not pattern_comp.search(vc_company):
+                return JsonResponse("invalid  company", safe=False)
+            elif not rule3_ph.search(vc_phonenumber):
+                return JsonResponse("invalid  phone", safe=False)
+            elif not rule2_email.search(vc_email):
+                return JsonResponse("invalid  email", safe=False)
+            elif not rule1_chr.search(vc_city):
+                return JsonResponse("invalid city", safe=False)
+            elif not rule1_chr.search(vc_state):
+                return JsonResponse("invalid state", safe=False)
+            elif not rule1_chr.search(purpose):
+                return JsonResponse("invalid purpose", safe=False)
+            elif not rule1_chr.search(str(register_for)):
+                return JsonResponse("invalid register for", safe=False)
+            elif not rule3_amount.search(str(total_amount)):
+                return JsonResponse("invalid amount", safe=False)
+            elif not pattern_gstpan.search(gst_no):
+                return JsonResponse("invalid gst or pan", safe=False)
+            elif not pattern_comp.search(address):
+                return JsonResponse("invalid address", safe=False)
+
 
             contact_data.save()
             return JsonResponse("successfully registered!!", safe=False)
@@ -619,17 +672,54 @@ class AssociateView(APIView):
 
 class CouponValidate(APIView):
     def post(self, request):
-        register_data = JSONParser().parse(request)
-        id = register_data['id']
-        coupon_code=register_data['coupon_code']
-        conference_data=EventConference_1.objects.filter(event_id=id).values('total_amount').first()
-        # conference_serializer=ConferenceSerializer(conference_data,many=True)
-        # coupen_data=Coupons.objects.raw("SELECT * from engageapp_coupons WHERE event_id={0} and coupon_code={1}".format(id,coupon_code))
-        coupon_data = Coupons.objects.filter(event_id=id, coupon_code=coupon_code
-                                             ).values('discount_amount', 'event_type').first()
-        # coupon_event_type = coupon_data['event_type']
-        if coupon_data:
-            net_amount = conference_data['total_amount']-coupon_data['discount_amount']
-            return JsonResponse(net_amount, safe=False)
-        else:
-            return JsonResponse("coupon does not exist", safe=False)
+        try:
+            register_data = JSONParser().parse(request)
+            id = register_data['id']
+            coupon_code=register_data['coupon_code']
+            event_type=register_data['event_type']
+            event_data=EventDetails.objects.filter(id=id).values('db_registrationTotal', 'vc_eventType').first()
+            if not event_data:
+                return JsonResponse({"Error": "Event Does Not Exist"}, safe=False)
+            # coupen_data=Coupons.objects.raw("SELECT * from engageapp_coupons WHERE event_id={0} and coupon_code={1}".format(id,coupon_code))
+            coupon_data = Coupons.objects.filter(coupon_code=coupon_code, status=True
+                                                 ).values('discount_amount', 'event_type').first()
+            # print(coupon_data['event_type'])
+            if coupon_data:
+                if event_type != coupon_data['event_type']:
+                    return JsonResponse({"Error":"event type and coupon type does not match"}, safe=False)
+                if event_type != event_data['vc_eventType']:
+                    return JsonResponse({"Error":"event type does not match"}, safe=False)
+                net_amount = event_data['db_registrationTotal']-coupon_data['discount_amount']
+                return JsonResponse({"new_amount": net_amount}, safe=False)
+            else:
+                return JsonResponse({'Error':'coupon does not exist!!'}, safe=False)
+        except Exception as e:
+            print(e)
+            return JsonResponse(str(e), safe=False)
+
+
+class GetInRegister(APIView):
+    def post(self, request):
+        try:
+            register_data = JSONParser().parse(request)
+            contact_data = GetInTouch.objects.create(
+                                                        name=register_data['name'],
+                                                        mail=register_data['mail'],
+                                                        phone=register_data['phone'],
+                                                        company=register_data['company'],
+                                                        message=register_data['message'],
+                                                    )
+            mail=register_data['mail']
+            phone=register_data['phone']
+            rule3_ph = re.compile(r'^[0-9]{10}$')
+            rule2_email = re.compile(r'^[a-z0-9]+[\._]?[a-z0-9]+[@]\w+[.]\w{2,3}$')
+            if not rule2_email.search(mail):
+                return JsonResponse("invalid Email", safe=False)
+            elif not rule3_ph.search(phone):
+                return JsonResponse("invalid phone", safe=False)
+
+            contact_data.save()
+            return JsonResponse("successfully registered!!", safe=False)
+
+        except IntegrityError:
+            return JsonResponse('user of this data is already exist!!', safe=False)
