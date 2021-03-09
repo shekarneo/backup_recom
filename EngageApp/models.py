@@ -156,6 +156,8 @@ class EventSpeakers(models.Model):
     dt_created_datetime = models.DateTimeField()
     vc_last_modified_empid = models.CharField(max_length=500)
     dt_last_modified_datetime = models.DateTimeField()
+    vidio_url=models.CharField(max_length=4000,null=True)
+    presentation=models.CharField(max_length=500,null=True)
     event = models.ForeignKey(EventDetails, default=1, on_delete=models.SET_NULL, null=True)
 
 
@@ -313,3 +315,7 @@ class Coupons(models.Model):
     modified_datetime = models.DateTimeField()
     event_type = models.CharField(max_length=100, null=True)
     event = models.ForeignKey(EventDetails, default=1, on_delete=models.SET_NULL, null=True)
+
+class Gallary(models.Model):
+    id = models.AutoField(primary_key=True)
+    images = models.CharField(max_length=200)

@@ -2,7 +2,7 @@ from rest_framework import serializers
 from .models import (EventDetails, EventAssociation, EventDelegates, EventDates,
                      EventExhibitor, EventLog, EventPartners, EventPartnerships,
                      EventSalesPersons, EventSpeakers, EventSupportedBy, EventTestimonials, EventVisitors, AboutUs,
-                     EventMediaPartner)
+                     EventMediaPartner,Gallary)
 
 
 class EventSerializer(serializers.ModelSerializer):
@@ -178,3 +178,8 @@ class EventSerializerUpcoming(serializers.ModelSerializer):
                 'vc_backgroundImage',
                 'vc_description'
             )
+
+class GallarySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Gallary
+        fields = ('images',)

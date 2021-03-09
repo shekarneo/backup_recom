@@ -31,6 +31,7 @@ urlpatterns = [
     url(r'^visitors/$', views.EventVisitorslist.as_view()),
     url(r'^event_data/$', views.EventData.as_view()),
     url(r'^about_us/$', views.AboutUsView.as_view()),
+    url(r'^gallary/$',views.EventGallary.as_view()),
 
     # API'S FOR POSTING THE DATA INTO THE TABLES ###
 

@@ -11,14 +11,14 @@ from django.db import IntegrityError
 from .models import (EventDetails, EventAssociation, EventDelegates, EventDates,
                      EventExhibitor, EventLog, EventPartners, EventPartnerships,
                      EventSalesPersons, EventSpeakers, EventSupportedBy, EventTestimonials, EventVisitors, AboutUs,
-                     EventExhibitor_1,GetInTouch,
+                     EventExhibitor_1,GetInTouch,Gallary,
                      EventConference_1, EventVisitor_1, VirtualRegister, EventMediaPartner, ContactDeatils, Coupons)
 from .serializers import (EventSerializer, AssociationSerializer, DelegateSerializer, EventDateSerializer,
                           ExhibitorSerializer, EventLogSerializer, EventPartnersSerializer, EventPartnershipSerializer,
                           EventSalesPersonSerializer, EventSpeakersSerializer, EventSupportedSerializer,
                           EventTestimonialsSerializer,EventSerializerUpcoming,
                           EventVisitorSerializer, aboutUsSerializer, EventSerializerReq, EventMediaSerializer,
-                          EventAssociateSerializer)
+                          EventAssociateSerializer,GallarySerializer)
 from django.views.decorators.csrf import csrf_exempt
 import datetime
 from rest_framework import serializers
@@ -723,3 +723,10 @@ class GetInRegister(APIView):
 
         except IntegrityError:
             return JsonResponse('user of this data is already exist!!', safe=False)
+
+
+class EventGallary(APIView):
+    def post(self, request):
+        images = Gallary.objects.all()
+        gallary_serializer = GallarySerializer(images, many=True)
+        return JsonResponse({'gallary': gallary_serializer.data}, safe=False)
