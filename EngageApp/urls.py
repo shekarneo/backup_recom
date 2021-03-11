@@ -31,7 +31,8 @@ urlpatterns = [
     url(r'^visitors/$', views.EventVisitorslist.as_view()),
     url(r'^event_data/$', views.EventData.as_view()),
     url(r'^about_us/$', views.AboutUsView.as_view()),
-    url(r'^gallary/$',views.EventGallary.as_view()),
+    url(r'^gallery/$',views.EventGallary.as_view()),
+    url(r'^child_event_data/$',views.ChildEventData.as_view()),
 
     # API'S FOR POSTING THE DATA INTO THE TABLES ###
 
@@ -51,6 +52,7 @@ urlpatterns = [
     url(r'^associations/$', views.AssociateView.as_view()),
     url(r'^coupon/$', views.CouponValidate.as_view()),
     url(r'^get_in_touch/$', views.GetInRegister.as_view()),
+    url(r'^test/$', views.AndroidTest.as_view()),
 ]
 
 # if settings.DEBUG:

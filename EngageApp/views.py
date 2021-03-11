@@ -11,14 +11,14 @@ from django.db import IntegrityError
 from .models import (EventDetails, EventAssociation, EventDelegates, EventDates,
                      EventExhibitor, EventLog, EventPartners, EventPartnerships,
                      EventSalesPersons, EventSpeakers, EventSupportedBy, EventTestimonials, EventVisitors, AboutUs,
-                     EventExhibitor_1,GetInTouch,Gallary,
-                     EventConference_1, EventVisitor_1, VirtualRegister, EventMediaPartner, ContactDeatils, Coupons)
+                     EventExhibitor_1,GetInTouch,Gallary,MasterEvent,
+                     EventConference_1, EventVisitor_1, VirtualRegister, EventMediaPartner, ContactDetails, Coupons)
 from .serializers import (EventSerializer, AssociationSerializer, DelegateSerializer, EventDateSerializer,
                           ExhibitorSerializer, EventLogSerializer, EventPartnersSerializer, EventPartnershipSerializer,
                           EventSalesPersonSerializer, EventSpeakersSerializer, EventSupportedSerializer,
                           EventTestimonialsSerializer,EventSerializerUpcoming,
                           EventVisitorSerializer, aboutUsSerializer, EventSerializerReq, EventMediaSerializer,
-                          EventAssociateSerializer,GallarySerializer)
+                          EventAssociateSerializer,GallarySerializer,MasterEventSerializer)
 from django.views.decorators.csrf import csrf_exempt
 import datetime
 from rest_framework import serializers
@@ -26,10 +26,9 @@ from rest_framework import serializers
 
 # Create your views here.
 @csrf_exempt
-@csrf_exempt
 def filter_date_event1(request):
     if request.method == "POST":
-        events = EventDetails.objects.filter(dt_eventCreatedEmpDatetime__gte=datetime.datetime.now()).values('id','vc_event_title','vc_backgroundImage','vc_description')[0:3]
+        events = MasterEvent.objects.filter(dt_eventCreatedEmpDatetime__gte=datetime.datetime.now()).values('id','vc_main_title','vc_backgroundImage','vc_description')[0:3]
         upcoming_serializer=EventSerializerUpcoming(events,many=True)
         return JsonResponse({'upcoming_events': upcoming_serializer.data}, safe=False)
 
@@ -37,7 +36,7 @@ def filter_date_event1(request):
 @csrf_exempt
 def filter_date_event2(request):
     if request.method == "POST":
-        events = EventDetails.objects.filter(dt_eventCreatedEmpDatetime__gte=datetime.datetime.now()).values('id','vc_event_title','vc_backgroundImage','vc_description')
+        events = MasterEvent.objects.filter(dt_eventCreatedEmpDatetime__gte=datetime.datetime.now()).values('id','vc_main_title','vc_backgroundImage','vc_description')
         upcoming_serializer=EventSerializerUpcoming(events,many=True)
         return JsonResponse({'upcoming_events_all': upcoming_serializer.data}, safe=False)
 
@@ -45,7 +44,7 @@ def filter_date_event2(request):
 @csrf_exempt
 def filter_date_event3(request):
     if request.method == "POST":
-        events = EventDetails.objects.filter(dt_eventCreatedEmpDatetime__lte=datetime.datetime.now()).values('id','vc_event_title','vc_backgroundImage','vc_description')[0:3]
+        events = MasterEvent.objects.filter(dt_eventCreatedEmpDatetime__lte=datetime.datetime.now()).values('id','vc_main_title','vc_backgroundImage','vc_description')[0:3]
         event_serializer = EventSerializerUpcoming(events, many=True)
         return JsonResponse({'past_events': event_serializer.data}, safe=False)
 
@@ -53,7 +52,7 @@ def filter_date_event3(request):
 @csrf_exempt
 def filter_date_event4(request):
     if request.method == "POST":
-        events = EventDetails.objects.filter(dt_eventCreatedEmpDatetime__lte=datetime.datetime.now()).values('id','vc_event_title','vc_backgroundImage','vc_description')
+        events = MasterEvent.objects.filter(dt_eventCreatedEmpDatetime__lte=datetime.datetime.now()).values('id','vc_main_title','vc_backgroundImage','vc_description')
         event_serializer = EventSerializerUpcoming(events, many=True)
         return JsonResponse({'past_events_all': event_serializer.data}, safe=False)
 
@@ -211,30 +210,70 @@ class EventData(APIView):
     def post(self, request):
         register_data = JSONParser().parse(request)
         id = register_data['id']
-        events = EventDetails.objects.filter(id=id).values()
-        supporters = EventSupportedBy.objects.filter(event_id=id).values()
-        our_partners = EventPartners.objects.filter(event_id=id).values()
-        media_partners = EventMediaPartner.objects.filter(event_id=id).values()
-        speakers = EventSpeakers.objects.raw(
-            "SELECT * FROM engageapp_eventspeakers WHERE event_id = {0} ORDER BY SUBSTRING_INDEX(SUBSTRING_INDEX("
-            "vc_speaker_name, ' ', 2), ' ', -1)".format(
-                id))
-        association_partners = EventAssociation.objects.filter(event_id=id).values()
+        try:
+            master_events = MasterEvent.objects.filter(id=id).values()
+            events = EventDetails.objects.raw(f"SELECT * FROM engageapp_eventdetails") # WHERE master_event_id_id = {id}")
+            supporters = EventSupportedBy.objects.raw(f"SELECT * FROM engageapp_eventsupportedby") # WHERE event_id_id = {id}")
+            our_partners = EventPartners.objects.raw(f"SELECT * FROM engageapp_eventpartners") # WHERE event_id_id = {id}")
+            media_partners = EventMediaPartner.objects.raw(f"SELECT * FROM engageapp_eventmediapartner") # WHERE event_id_id = {id}")
+            speakers = EventSpeakers.objects.raw(
+                "SELECT * FROM engageapp_eventspeakers") # WHERE event_id_id = {0} ORDER BY SUBSTRING_INDEX(SUBSTRING_INDEX("
+                #"vc_speaker_name, ' ', 2), ' ', -1)".format(id))
+            association_partners = EventAssociation.objects.raw(f"SELECT * FROM engageapp_eventassociation") # WHERE event_id_id = {id}")  
+            
+            master_event_serializer = MasterEventSerializer(master_events, many=True)
+            event_serializer = EventSerializer(events, many=True)
+            supported_serializer = EventSupportedSerializer(supporters, many=True)
+            partners_serializer = EventPartnersSerializer(our_partners, many=True)
+            speakers_serializer = EventSpeakersSerializer(speakers, many=True)
+            association_serializer = AssociationSerializer(association_partners, many=True)
+            media_serializer = EventMediaSerializer(media_partners, many=True)
 
-        event_serializer = EventSerializer(events, many=True)
-        supported_serializer = EventSupportedSerializer(supporters, many=True)
-        partners_serializer = EventPartnersSerializer(our_partners, many=True)
-        speakers_serializer = EventSpeakersSerializer(speakers, many=True)
-        association_serializer = AssociationSerializer(association_partners, many=True)
-        media_serializer = EventMediaSerializer(media_partners, many=True)
+            return JsonResponse({'master_events': master_event_serializer.data,
+                                 'child_events': event_serializer.data,
+                                 'supported_by': supported_serializer.data,
+                                 'our_partners': partners_serializer.data,
+                                 'speakers': speakers_serializer.data,
+                                 'associations': association_serializer.data,
+                                 'media': media_serializer.data
+                                 }, safe=False)
+        except Exception as e:
+            print(e)
 
-        return JsonResponse({'events': event_serializer.data,
-                             'supported_by': supported_serializer.data,
-                             'our_partners': partners_serializer.data,
-                             'speakers': speakers_serializer.data,
-                             'associations': association_serializer.data,
-                             'media': media_serializer.data
-                             }, safe=False)
+
+
+class ChildEventData(APIView):
+    def post(self, request):
+       # register_data = JSONParser().parse(request)
+       # id = register_data['id']
+        
+        try:
+            events = EventDetails.objects.raw(f"SELECT * FROM engageapp_eventdetails") # WHERE master_event_id_id = {id}")
+            supporters = EventSupportedBy.objects.raw(f"SELECT * FROM engageapp_eventsupportedby") # WHERE event_id_id = {id}")
+            our_partners = EventPartners.objects.raw(f"SELECT * FROM engageapp_eventpartners") # WHERE event_id_id = {id}")
+            media_partners = EventMediaPartner.objects.raw(f"SELECT * FROM engageapp_eventmediapartner") # WHERE event_id_id = {id}")
+            speakers = EventSpeakers.objects.raw(
+                "SELECT * FROM engageapp_eventspeakers") # WHERE event_id_id = {0} ORDER BY SUBSTRING_INDEX(SUBSTRING_INDEX("
+                #"vc_speaker_name, ' ', 2), ' ', -1)".format(id))
+            association_partners = EventAssociation.objects.raw(f"SELECT * FROM engageapp_eventassociation") # WHERE event_id_id = {id}")    
+            
+            event_serializer = EventSerializer(events, many=True)
+            supported_serializer = EventSupportedSerializer(supporters, many=True)
+            partners_serializer = EventPartnersSerializer(our_partners, many=True)
+            speakers_serializer = EventSpeakersSerializer(speakers, many=True)
+            association_serializer = AssociationSerializer(association_partners, many=True)
+            media_serializer = EventMediaSerializer(media_partners, many=True)
+
+            return JsonResponse({
+                                 'child_events': event_serializer.data,
+                                 'supported_by': supported_serializer.data,
+                                 'our_partners': partners_serializer.data,
+                                 'speakers': speakers_serializer.data,
+                                 'associations': association_serializer.data,
+                                 'media': media_serializer.data
+                                 }, safe=False)
+        except Exception as e:
+            print(e)
 
 
 class AboutUsView(APIView):
@@ -730,3 +769,8 @@ class EventGallary(APIView):
         images = Gallary.objects.all()
         gallary_serializer = GallarySerializer(images, many=True)
         return JsonResponse({'gallary': gallary_serializer.data}, safe=False)
+
+
+class AndroidTest(APIView):
+    def post(self,request):
+        return JsonResponse("response successful!!", safe=False)

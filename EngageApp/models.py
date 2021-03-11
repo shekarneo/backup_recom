@@ -2,13 +2,51 @@ from django.db import models
 
 
 # Create your models here.
+
+class MasterEvent(models.Model):
+    id = models.AutoField(primary_key=True)
+    vc_main_title = models.CharField(max_length=200, blank=True, null=True)
+    vc_event_location = models.CharField(max_length=200, null=True, blank=True)
+    vc_city = models.CharField(max_length=200, null=True, blank=True)
+    vc_state = models.CharField(max_length=200, null=True, blank=True)
+    country = models.CharField(max_length=200, null=True, blank=True)
+    vc_status = models.CharField(max_length=200, null=True, blank=True)
+    db_registrationCharge = models.FloatField(null=True, blank=True)
+    db_registrationTax = models.FloatField(null=True, blank=True)
+    db_registrationTotal = models.FloatField(null=True, blank=True)
+    vc_eventBanner = models.CharField(max_length=300, null=True, blank=True)
+    vc_description = models.CharField(max_length=5000, null=True, blank=True)
+    vc_backgroundImage = models.CharField(max_length=300, null=True, blank=True)
+    vc_agenda_link = models.CharField(max_length=200, null=True, blank=True)
+    vc_brochure_link = models.CharField(max_length=200, null=True, blank=True)
+    vc_floorPlan_link = models.CharField(max_length=200, null=True, blank=True)
+    vc_eventType = models.CharField(max_length=200, null=True, blank=True)
+    vc_eventCreatedEmpId = models.CharField(max_length=200, null=True, blank=True)
+    dt_eventCreatedEmpDatetime = models.DateTimeField(null=True, blank=True)
+    dt_lastModifiedEmpId = models.CharField(max_length=200, null=True, blank=True)
+    dt_lastModifiedDatetime = models.DateTimeField(null=True, blank=True)
+    vc_virtualPartner = models.CharField(max_length=200, null=True, blank=True)
+    req_conference = models.BooleanField(default=True, null=True, blank=True)
+    req_exhibitor = models.BooleanField(default=True)
+    req_partners = models.BooleanField(default=True)
+    req_visitor = models.BooleanField(default=True)
+    req_virtual = models.BooleanField(default=True)
+    about_bg = models.CharField(max_length=100, null=True, blank=True)
+    event_date = models.CharField(max_length=100, null=True, blank=True)
+    news =  models.CharField(max_length=500, null=True, blank=True)
+    presentation =  models.CharField(max_length=500, null=True, blank=True)
+    
+    def __str__(self):
+        return f"{self.id}"
+
+
+
+
 class EventDetails(models.Model):
     id = models.AutoField(primary_key=True)
+    master_event_id = models.ForeignKey(MasterEvent, default=1, on_delete=models.SET_NULL, null=True)
     vc_event_title = models.CharField(max_length=200, blank=True)
     vc_event_location = models.CharField(max_length=200)
-    vc_city = models.CharField(max_length=200)
-    vc_state = models.CharField(max_length=200)
-    country = models.CharField(max_length=200)
     vc_status = models.CharField(max_length=200)
     db_registrationCharge = models.FloatField()
     db_registrationTax = models.FloatField()
@@ -24,14 +62,21 @@ class EventDetails(models.Model):
     dt_eventCreatedEmpDatetime = models.DateTimeField()
     dt_lastModifiedEmpId = models.CharField(max_length=200)
     dt_lastModifiedDatetime = models.DateTimeField()
-    vc_virtualPartner = models.CharField(max_length=200)
-    req_conference = models.BooleanField(default=True)
-    req_exhibitors = models.BooleanField(default=True)
-    req_partners = models.BooleanField(default=True)
-    req_visitors = models.BooleanField(default=True)
-    req_virtual = models.BooleanField(default=True)
-    about_bg = models.CharField(max_length=100, default=" ")
-    update=models.CharField(max_length=1000, null=True)
+    event_date = models.CharField(max_length=100, null=True, blank=True)
+    
+    def __str__(self):
+        return self.vc_event_title
+
+
+class EventImages(models.Model):
+    id = models.AutoField(primary_key=True)
+    vc_event_images = models.CharField(max_length=200, blank=True, null=True)
+    image_description = models.CharField(max_length=200, blank=True, null=True)
+    event_id = models.ForeignKey(EventDetails, default=1, on_delete=models.SET_NULL, null=True)
+    
+    def __str__(self):
+        return self.vc_event_images
+
 
 
 class EventAssociation(models.Model):
@@ -44,7 +89,11 @@ class EventAssociation(models.Model):
     vc_uploadedEmpId = models.CharField(max_length=200)
     dt_last_updated_datetime = models.DateTimeField()
     dt_last_updated_empid = models.CharField(max_length=200)
-    event = models.ForeignKey(EventDetails, default=1, on_delete=models.SET_NULL, null=True)
+    event_id = models.ForeignKey(EventDetails, default=1, on_delete=models.SET_NULL, null=True)
+    
+    def __str__(self):
+        return self.ch_name
+
 
 
 class EventDelegates(models.Model):
@@ -63,14 +112,22 @@ class EventDelegates(models.Model):
     vc_country = models.CharField(max_length=200)
     dt_registered_datetime = models.DateTimeField()
     vc_status = models.CharField(max_length=200)
-    event = models.ForeignKey(EventDetails, default=1, on_delete=models.SET_NULL, null=True)
+    event_id = models.ForeignKey(EventDetails, default=1, on_delete=models.SET_NULL, null=True)
+    
+    def __str__(self):
+        return self.ch_name
+
 
 
 class EventDates(models.Model):
     id = models.AutoField(primary_key=True)
     dt_eventDates = models.DateTimeField(blank=True, null=True)
     status = models.CharField(max_length=200, blank=True, null=True)
-    event = models.ForeignKey(EventDetails, default=1, on_delete=models.SET_NULL, null=True)
+    event_id = models.ForeignKey(EventDetails, default=1, on_delete=models.SET_NULL, null=True)
+    
+    def __str__(self):
+        return self.dt_eventDates
+
 
 
 class EventExhibitor(models.Model):
@@ -92,7 +149,11 @@ class EventExhibitor(models.Model):
     dt_last_modified_datetime = models.DateTimeField()
     vc_last_modified_empid = models.CharField(max_length=200)
     vc_stall_code = models.CharField(max_length=200)
-    event = models.ForeignKey(EventDetails, default=1, on_delete=models.SET_NULL, null=True)
+    event_id = models.ForeignKey(EventDetails, default=1, on_delete=models.SET_NULL, null=True)
+    
+    def __str__(self):
+        return self.vc_company_name
+
 
 
 class EventLog(models.Model):
@@ -100,6 +161,10 @@ class EventLog(models.Model):
     vc_log_type = models.CharField(max_length=200)
     vc_logDescription = models.CharField(max_length=1000)
     dt_logDatetime = models.DateTimeField()
+    
+    def __str__(self):
+        return self.vc_log_type
+
 
 
 class EventPartners(models.Model):
@@ -114,7 +179,11 @@ class EventPartners(models.Model):
     ft_amount_charged = models.FloatField()
     last_modified_datetime = models.DateTimeField()
     last_modified_empid = models.CharField(max_length=200)
-    event = models.ForeignKey(EventDetails, default=1, on_delete=models.SET_NULL, null=True)
+    event_id = models.ForeignKey(EventDetails, default=1, on_delete=models.SET_NULL, null=True)
+    
+    def __str__(self):
+        return self.vc_partner_name
+
 
 
 class EventPartnerships(models.Model):
@@ -129,7 +198,11 @@ class EventPartnerships(models.Model):
     vc_state = models.CharField(max_length=200, default='')
     purpose = models.CharField(max_length=2000, default='')
     register_for = models.CharField(max_length=500, null=True, blank=True)
-    event = models.ForeignKey(EventDetails, default=1, on_delete=models.SET_NULL, null=True)
+    event_id = models.ForeignKey(EventDetails, default=1, on_delete=models.SET_NULL, null=True)
+    
+    def __str__(self):
+        return self.ch_firstname
+
 
 
 class EventSalesPersons(models.Model):
@@ -140,7 +213,11 @@ class EventSalesPersons(models.Model):
     dt_added_datetime = models.DateTimeField()
     vc_removed_empid = models.CharField(max_length=200)
     dt_removed_datetime = models.DateTimeField()
-    event = models.ForeignKey(EventDetails, default=1, on_delete=models.SET_NULL, null=True)
+    event_id = models.ForeignKey(EventDetails, default=1, on_delete=models.SET_NULL, null=True)
+    
+    def __str__(self):
+        return self.vc_empid
+
 
 
 class EventSpeakers(models.Model):
@@ -158,7 +235,11 @@ class EventSpeakers(models.Model):
     dt_last_modified_datetime = models.DateTimeField()
     vidio_url=models.CharField(max_length=4000,null=True)
     presentation=models.CharField(max_length=500,null=True)
-    event = models.ForeignKey(EventDetails, default=1, on_delete=models.SET_NULL, null=True)
+    event_id = models.ForeignKey(EventDetails, default=1, on_delete=models.SET_NULL, null=True)
+    
+    def __str__(self):
+        return self.vc_speaker_name
+
 
 
 class EventSupportedBy(models.Model):
@@ -169,7 +250,11 @@ class EventSupportedBy(models.Model):
     vc_priority = models.IntegerField()
     vc_company_url = models.CharField(max_length=300)
     vc_created_datetime = models.DateTimeField()
-    event = models.ForeignKey(EventDetails, default=1, on_delete=models.SET_NULL, null=True)
+    event_id = models.ForeignKey(EventDetails, default=1, on_delete=models.SET_NULL, null=True)
+    
+    def __str__(self):
+        return self.vc_comapany_name
+
 
 
 class EventTestimonials(models.Model):
@@ -180,7 +265,11 @@ class EventTestimonials(models.Model):
     vc_comments = models.CharField(max_length=300)
     vc_status = models.CharField(max_length=300)
     vc_type = models.CharField(max_length=300)
-    event = models.ForeignKey(EventDetails, default=1, on_delete=models.SET_NULL, null=True)
+    event_id = models.ForeignKey(EventDetails, default=1, on_delete=models.SET_NULL, null=True)
+    
+    def __str__(self):
+        return self.vc_name
+
 
 
 class EventVisitors(models.Model):
@@ -192,7 +281,11 @@ class EventVisitors(models.Model):
     vc_mail = models.CharField(max_length=200)
     vc_city = models.CharField(max_length=200)
     dt_created_datetime = models.DateTimeField()
-    event = models.ForeignKey(EventDetails, default=1, on_delete=models.SET_NULL, null=True)
+    event_id = models.ForeignKey(EventDetails, default=1, on_delete=models.SET_NULL, null=True)
+    
+    def __str__(self):
+        return self.vc_name
+
 
 
 class GetInTouch(models.Model):
@@ -211,7 +304,7 @@ class AboutUs(models.Model):
     phone = models.CharField(max_length=200)
 
 
-class ContactDeatils(models.Model):
+class ContactDetails(models.Model):
     id = models.AutoField(primary_key=True)
     first_name = models.CharField(max_length=200)
     last_name = models.CharField(max_length=200)
@@ -234,7 +327,11 @@ class EventExhibitor_1(models.Model):
     vc_state = models.CharField(max_length=200, default='')
     purpose = models.CharField(max_length=2000, default='')
     register_for = models.CharField(max_length=2000, default='')
-    event = models.ForeignKey(EventDetails, default=1, on_delete=models.SET_NULL, null=True)
+    event_id = models.ForeignKey(EventDetails, default=1, on_delete=models.SET_NULL, null=True)
+    
+    def __str__(self):
+        return self.ch_firstname
+
 
 
 class EventConference_1(models.Model):
@@ -255,7 +352,11 @@ class EventConference_1(models.Model):
     address = models.CharField(max_length=2000, default='')
     register_for = models.CharField(max_length=2000, default='')
     coupen = models.CharField(max_length=200, default='')
-    event = models.ForeignKey(EventDetails, default=1, on_delete=models.SET_NULL, null=True)
+    event_id = models.ForeignKey(EventDetails, default=1, on_delete=models.SET_NULL, null=True)
+    
+    def __str__(self):
+        return self.ch_firstname
+
 
 
 class EventVisitor_1(models.Model):
@@ -270,7 +371,11 @@ class EventVisitor_1(models.Model):
     vc_state = models.CharField(max_length=200, default='')
     purpose = models.CharField(max_length=2000, default='')
     register_for = models.CharField(max_length=2000, default='')
-    event = models.ForeignKey(EventDetails, default=1, on_delete=models.SET_NULL, null=True)
+    event_id = models.ForeignKey(EventDetails, default=1, on_delete=models.SET_NULL, null=True)
+    
+    def __str__(self):
+        return self.ch_firstname
+
 
 
 class VirtualRegister(models.Model):
@@ -291,7 +396,11 @@ class VirtualRegister(models.Model):
     address = models.CharField(max_length=2000, default='')
     register_for = models.CharField(max_length=2000, default='')
     coupen = models.CharField(max_length=200, default='')
-    event = models.ForeignKey(EventDetails, default=1, on_delete=models.SET_NULL, null=True)
+    event_id = models.ForeignKey(EventDetails, default=1, on_delete=models.SET_NULL, null=True)
+    
+    def __str__(self):
+        return self.ch_firstname
+
 
 
 class EventMediaPartner(models.Model):
@@ -302,7 +411,11 @@ class EventMediaPartner(models.Model):
     vc_priority = models.IntegerField()
     vc_company_url = models.CharField(max_length=300)
     vc_created_datetime = models.DateTimeField()
-    event = models.ForeignKey(EventDetails, default=1, on_delete=models.SET_NULL, null=True)
+    event_id = models.ForeignKey(EventDetails, default=1, on_delete=models.SET_NULL, null=True)
+    
+    def __str__(self):
+        return self.vc_comapany_name
+
 
 
 class Coupons(models.Model):
@@ -314,8 +427,9 @@ class Coupons(models.Model):
     created_datetime = models.DateTimeField()
     modified_datetime = models.DateTimeField()
     event_type = models.CharField(max_length=100, null=True)
-    event = models.ForeignKey(EventDetails, default=1, on_delete=models.SET_NULL, null=True)
+    event_id = models.ForeignKey(EventDetails, default=1, on_delete=models.SET_NULL, null=True)
 
 class Gallary(models.Model):
     id = models.AutoField(primary_key=True)
     images = models.CharField(max_length=200)
+    event_id = models.ForeignKey(EventDetails, default=1, on_delete=models.SET_NULL, null=True)
